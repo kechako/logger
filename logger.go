@@ -35,6 +35,7 @@ type Logger struct {
 	fatalLog *log.Logger
 
 	level Level
+	depth int
 
 	mu sync.Mutex
 
@@ -105,7 +106,19 @@ func (l *Logger) Close() error {
 	return nil
 }
 
-func (l *Logger) log(level Level, depth int, text string) {
+func (l *Logger) SetDepth(depth int) {
+	if depth < 0 {
+		panic("depth must be more than or equal to 0")
+	}
+
+	l.depth = depth
+}
+
+func (l *Logger) Depth() int {
+	return l.depth
+}
+
+func (l *Logger) log(level Level, text string) {
 	if level < l.level {
 		return
 	}
@@ -114,104 +127,82 @@ func (l *Logger) log(level Level, depth int, text string) {
 
 	switch level {
 	case Debug:
-		l.debugLog.Output(3+depth, text)
+		l.debugLog.Output(3+l.depth, text)
 	case Info:
-		l.infoLog.Output(3+depth, text)
+		l.infoLog.Output(3+l.depth, text)
 	case Warn:
-		l.warnLog.Output(3+depth, text)
+		l.warnLog.Output(3+l.depth, text)
 	case Error:
-		l.errorLog.Output(3+depth, text)
+		l.errorLog.Output(3+l.depth, text)
 	case Fatal:
-		l.fatalLog.Output(3+depth, text)
+		l.fatalLog.Output(3+l.depth, text)
 	}
 
 	l.mu.Unlock()
 }
 
 func (l *Logger) Debug(v ...interface{}) {
-	l.log(Debug, 0, fmt.Sprint(v...))
-}
-
-func (l *Logger) DebugDepth(depth int, v ...interface{}) {
-	l.log(Debug, depth, fmt.Sprint(v...))
+	l.log(Debug, fmt.Sprint(v...))
 }
 
 func (l *Logger) Debugln(v ...interface{}) {
-	l.log(Debug, 0, fmt.Sprintln(v...))
+	l.log(Debug, fmt.Sprintln(v...))
 }
 
 func (l *Logger) Debugf(format string, v ...interface{}) {
-	l.log(Debug, 0, fmt.Sprintf(format, v...))
+	l.log(Debug, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Info(v ...interface{}) {
-	l.log(Info, 0, fmt.Sprint(v...))
-}
-
-func (l *Logger) InfoDepth(depth int, v ...interface{}) {
-	l.log(Info, depth, fmt.Sprint(v...))
+	l.log(Info, fmt.Sprint(v...))
 }
 
 func (l *Logger) Infoln(v ...interface{}) {
-	l.log(Info, 0, fmt.Sprintln(v...))
+	l.log(Info, fmt.Sprintln(v...))
 }
 
 func (l *Logger) Infof(format string, v ...interface{}) {
-	l.log(Info, 0, fmt.Sprintf(format, v...))
+	l.log(Info, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Warn(v ...interface{}) {
-	l.log(Warn, 0, fmt.Sprint(v...))
-}
-
-func (l *Logger) WarnDepth(depth int, v ...interface{}) {
-	l.log(Warn, depth, fmt.Sprint(v...))
+	l.log(Warn, fmt.Sprint(v...))
 }
 
 func (l *Logger) Warnln(v ...interface{}) {
-	l.log(Warn, 0, fmt.Sprintln(v...))
+	l.log(Warn, fmt.Sprintln(v...))
 }
 
 func (l *Logger) Warnf(format string, v ...interface{}) {
-	l.log(Warn, 0, fmt.Sprintf(format, v...))
+	l.log(Warn, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Error(v ...interface{}) {
-	l.log(Error, 0, fmt.Sprint(v...))
-}
-
-func (l *Logger) ErrorDepth(depth int, v ...interface{}) {
-	l.log(Error, depth, fmt.Sprint(v...))
+	l.log(Error, fmt.Sprint(v...))
 }
 
 func (l *Logger) Errorln(v ...interface{}) {
-	l.log(Error, 0, fmt.Sprintln(v...))
+	l.log(Error, fmt.Sprintln(v...))
 }
 
 func (l *Logger) Errorf(format string, v ...interface{}) {
-	l.log(Error, 0, fmt.Sprintf(format, v...))
+	l.log(Error, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Fatal(v ...interface{}) {
-	l.log(Fatal, 0, fmt.Sprint(v...))
-	l.Close()
-	os.Exit(1)
-}
-
-func (l *Logger) FatalDepth(depth int, v ...interface{}) {
-	l.log(Fatal, depth, fmt.Sprint(v...))
+	l.log(Fatal, fmt.Sprint(v...))
 	l.Close()
 	os.Exit(1)
 }
 
 func (l *Logger) Fatalln(v ...interface{}) {
-	l.log(Fatal, 0, fmt.Sprintln(v...))
+	l.log(Fatal, fmt.Sprintln(v...))
 	l.Close()
 	os.Exit(1)
 }
 
 func (l *Logger) Fatalf(format string, v ...interface{}) {
-	l.log(Fatal, 0, fmt.Sprintf(format, v...))
+	l.log(Fatal, fmt.Sprintf(format, v...))
 	l.Close()
 	os.Exit(1)
 }
